@@ -2,23 +2,26 @@
 
 import { revalidatePath } from "next/cache"
 import { connectToDatabase, Task } from "./db"
+import type { Task as TaskType } from "./types"
 
 export async function addTask(title: string) {
-  // Use edge runtime for this function
-  const runtime = "edge"
-
   try {
     await connectToDatabase()
 
     const newTask = new Task({
       title,
       completed: false,
+      status: "todo", // Default status for new tasks
     })
 
-    await newTask.save()
+    const savedTask = await newTask.save()
     revalidatePath("/")
+    revalidatePath("/kanban")
 
-    return { success: true }
+    return {
+      success: true,
+      task: JSON.parse(JSON.stringify(savedTask)),
+    }
   } catch (error) {
     console.error("Failed to add task:", error)
     return { success: false, error: "Failed to add task" }
@@ -26,13 +29,11 @@ export async function addTask(title: string) {
 }
 
 export async function deleteTask(id: string) {
-  // Use edge runtime for this function
-  const runtime = "edge"
-
   try {
     await connectToDatabase()
     await Task.findByIdAndDelete(id)
     revalidatePath("/")
+    revalidatePath("/kanban")
 
     return { success: true }
   } catch (error) {
@@ -42,15 +43,21 @@ export async function deleteTask(id: string) {
 }
 
 export async function updateTask(id: string, title: string) {
-  // Use edge runtime for this function
-  const runtime = "edge"
-
   try {
     await connectToDatabase()
-    await Task.findByIdAndUpdate(id, { title })
-    revalidatePath("/")
+    const updatedTask = await Task.findByIdAndUpdate(
+      id,
+      { title },
+      { new: true }, // Return the updated document
+    )
 
-    return { success: true }
+    revalidatePath("/")
+    revalidatePath("/kanban")
+
+    return {
+      success: true,
+      task: JSON.parse(JSON.stringify(updatedTask)),
+    }
   } catch (error) {
     console.error("Failed to update task:", error)
     return { success: false, error: "Failed to update task" }
@@ -58,18 +65,85 @@ export async function updateTask(id: string, title: string) {
 }
 
 export async function updateTaskStatus(id: string, status: string) {
-  // Use edge runtime for this function
-  const runtime = "edge"
-
   try {
     await connectToDatabase()
-    await Task.findByIdAndUpdate(id, { status })
-    revalidatePath("/")
 
-    return { success: true }
+    // Update both status and completed state
+    const completed = status === "done"
+    const updatedTask = await Task.findByIdAndUpdate(
+      id,
+      { status, completed },
+      { new: true }, // Return the updated document
+    )
+
+    revalidatePath("/")
+    revalidatePath("/kanban")
+
+    return {
+      success: true,
+      task: JSON.parse(JSON.stringify(updatedTask)),
+    }
   } catch (error) {
     console.error("Failed to update task status:", error)
     return { success: false, error: "Failed to update task status" }
+  }
+}
+
+export async function toggleTaskCompletion(id: string, completed: boolean) {
+  try {
+    await connectToDatabase()
+
+    // Update both completed state and status
+    const status = completed ? "done" : "todo"
+    const updatedTask = await Task.findByIdAndUpdate(
+      id,
+      { completed, status },
+      { new: true }, // Return the updated document
+    )
+
+    revalidatePath("/")
+    revalidatePath("/kanban")
+
+    return {
+      success: true,
+      task: JSON.parse(JSON.stringify(updatedTask)),
+    }
+  } catch (error) {
+    console.error("Failed to toggle task completion:", error)
+    return { success: false, error: "Failed to toggle task completion" }
+  }
+}
+
+// New function to update task order
+export async function updateTaskOrder(taskId: string, referenceTaskId: string) {
+  try {
+    await connectToDatabase()
+
+    // In a real application, you would update the order field of tasks
+    // For this example, we'll just revalidate the paths to refresh the UI
+
+    revalidatePath("/")
+    revalidatePath("/kanban")
+
+    return { success: true }
+  } catch (error) {
+    console.error("Failed to update task order:", error)
+    return { success: false, error: "Failed to update task order" }
+  }
+}
+
+// Function to fetch a single task by ID
+export async function getTaskById(id: string): Promise<TaskType | null> {
+  try {
+    await connectToDatabase()
+    const task = await Task.findById(id)
+
+    if (!task) return null
+
+    return JSON.parse(JSON.stringify(task))
+  } catch (error) {
+    console.error("Failed to fetch task:", error)
+    return null
   }
 }
 

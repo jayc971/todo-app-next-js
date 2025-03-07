@@ -47,6 +47,10 @@ const TaskSchema = new mongoose.Schema({
     enum: ["todo", "inprogress", "done"],
     default: "todo",
   },
+  order: {
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

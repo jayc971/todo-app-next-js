@@ -2,13 +2,16 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import Header from "@/components/header"
+import { LoadingProvider } from "@/contexts/loading-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Next.js Todo App",
-  description: "A simple todo app built with Next.js",
-    generator: 'v0.dev'
+  title: "To-Do App",
+  description: "A modern todo app built with Next.js and MongoDB",
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -17,8 +20,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gray-100 min-h-screen`}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} bg-background text-foreground min-h-screen flex flex-col`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <LoadingProvider>
+            <Header />
+            <div className="flex-1">{children}</div>
+          </LoadingProvider>
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

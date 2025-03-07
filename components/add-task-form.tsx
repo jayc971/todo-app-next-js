@@ -1,12 +1,14 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { addTask } from "@/lib/actions"
 import { useRouter } from "next/navigation"
 import type { Task } from "@/lib/types"
 import { useOptimistic } from "react"
+import { Button } from "@/components/ui/button"
+import { PlusCircle } from "lucide-react"
+import { useLoading } from "@/contexts/loading-context"
 
 interface AddTaskFormProps {
   tasks: Task[]
@@ -15,6 +17,7 @@ interface AddTaskFormProps {
 export default function AddTaskForm({ tasks }: AddTaskFormProps) {
   const [title, setTitle] = useState("")
   const router = useRouter()
+  const { startLoading, stopLoading } = useLoading()
 
   // Optimistic UI state for adding tasks
   const [optimisticTasks, addOptimisticTask] = useOptimistic(tasks, (state, newTask: Task) => [...state, newTask])
@@ -29,6 +32,7 @@ export default function AddTaskForm({ tasks }: AddTaskFormProps) {
       _id: `optimistic-${Date.now()}`,
       title: title.trim(),
       completed: false,
+      status: "todo",
       createdAt: new Date(),
     }
 
@@ -38,9 +42,26 @@ export default function AddTaskForm({ tasks }: AddTaskFormProps) {
     // Clear the input
     setTitle("")
 
-    // Then perform the actual add
-    await addTask(title.trim())
-    router.refresh()
+    // Show loading state
+    startLoading()
+
+    try {
+      // Then perform the actual add
+      const result = await addTask(title.trim())
+
+      if (!result.success) {
+        throw new Error("Failed to add task")
+      }
+
+      // Refresh to get the latest state
+      router.refresh()
+    } catch (error) {
+      console.error("Error adding task:", error)
+      // If there's an error, refresh to get the latest state
+      router.refresh()
+    } finally {
+      stopLoading()
+    }
   }
 
   return (
@@ -50,15 +71,13 @@ export default function AddTaskForm({ tasks }: AddTaskFormProps) {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Add a new task..."
-        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="flex-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
       />
-      <button
-        type="submit"
-        disabled={!title.trim()}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
-      >
-        Add Task
-      </button>
+      <Button type="submit" disabled={!title.trim()} className="gap-2">
+        <PlusCircle className="h-4 w-4" />
+        <span className="hidden sm:inline">Add Task</span>
+        <span className="sm:hidden">Add</span>
+      </Button>
     </form>
   )
 }

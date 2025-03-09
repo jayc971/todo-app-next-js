@@ -1,29 +1,35 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { addTask } from "@/lib/actions"
-import { useRouter } from "next/navigation"
-import type { Task } from "@/lib/types"
-import { useOptimistic } from "react"
-import { PlusCircle } from "lucide-react"
-import { useLoading } from "@/contexts/loading-context"
+import type React from "react";
+import { useState } from "react";
+import { addTask } from "@/lib/actions";
+import { useRouter } from "next/navigation";
+import type { Task } from "@/lib/types";
+import { useOptimistic } from "react";
+import { PlusCircle } from "lucide-react";
+import { useLoading } from "@/contexts/loading-context";
 
 interface AddTaskFormProps {
-  tasks: Task[]
-  kanbanView?: boolean
+  tasks: Task[];
+  kanbanView?: boolean;
 }
 
-export default function AddTaskForm({ tasks, kanbanView = false }: AddTaskFormProps) {
-  const [title, setTitle] = useState("")
-  const router = useRouter()
-  const { startLoading, stopLoading } = useLoading()
+export default function AddTaskForm({
+  tasks,
+  kanbanView = false,
+}: AddTaskFormProps) {
+  const [title, setTitle] = useState("");
+  const router = useRouter();
+  const { startLoading, stopLoading } = useLoading();
 
-  const [optimisticTasks, addOptimisticTask] = useOptimistic(tasks, (state, newTask: Task) => [...state, newTask])
+  const [optimisticTasks, addOptimisticTask] = useOptimistic(
+    tasks,
+    (state, newTask: Task) => [...state, newTask]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!title.trim()) return
+    e.preventDefault();
+    if (!title.trim()) return;
 
     const optimisticTask: Task = {
       _id: `optimistic-${Date.now()}`,
@@ -31,22 +37,22 @@ export default function AddTaskForm({ tasks, kanbanView = false }: AddTaskFormPr
       completed: false,
       status: "todo",
       createdAt: new Date(),
-    }
+    };
 
-    addOptimisticTask(optimisticTask)
-    setTitle("")
-    startLoading()
+    addOptimisticTask(optimisticTask);
+    setTitle("");
+    startLoading();
 
     try {
-      const result = await addTask(title.trim())
-      if (!result.success) throw new Error("Failed to add task")
-      router.refresh()
+      const result = await addTask(title.trim());
+      if (!result.success) throw new Error("Failed to add task");
+      router.refresh();
     } catch (error) {
-      router.refresh()
+      router.refresh();
     } finally {
-      stopLoading()
+      stopLoading();
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-0">
@@ -60,11 +66,10 @@ export default function AddTaskForm({ tasks, kanbanView = false }: AddTaskFormPr
       <button
         type="submit"
         disabled={!title.trim()}
-        className="p-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 border-l-0 transition-colors hover:border-green-500 rounded-r-md disabled:opacity-50 disabled:pointer-events-none"
+        className="p-4 bg-gray-100 hover:bg-green-100 dark:hover:bg-green-500 dark:bg-gray-700 border border-l-0 border-gray-400 hover:border-green-300 p-1 text-gray-400 dark:text-gray-300 transition-colors hover:text-green-500 disabled:opacity-50 disabled:pointer-events-none rounded-r-lg"
       >
         <PlusCircle className="h-4 w-4" />
       </button>
     </form>
-  )
+  );
 }
-

@@ -1,99 +1,113 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import type { Task } from "@/lib/types"
-import { useSortable } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { CheckSquare, Clock, Edit, Check, Trash, GripVertical } from "lucide-react"
-import { updateTask, deleteTask, getTaskById } from "@/lib/actions"
-import { useLoading } from "@/contexts/loading-context"
-import { useRouter } from "next/navigation"
-import DeleteTaskDialog from "./delete-task-dialog"
+import type React from "react";
+import { useState } from "react";
+import type { Task } from "@/lib/types";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  CheckSquare,
+  Clock,
+  Edit,
+  Check,
+  Trash,
+  GripVertical,
+} from "lucide-react";
+import { updateTask, deleteTask, getTaskById } from "@/lib/actions";
+import { useLoading } from "@/contexts/loading-context";
+import { useRouter } from "next/navigation";
+import DeleteTaskDialog from "./delete-task-dialog";
 
 interface KanbanItemProps {
-  task: Task
+  task: Task;
 }
 
 export default function KanbanItem({ task }: KanbanItemProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedTitle, setEditedTitle] = useState(task.title)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const { startLoading, stopLoading, isLoading } = useLoading()
-  const router = useRouter()
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(task.title);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { startLoading, stopLoading, isLoading } = useLoading();
+  const router = useRouter();
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: task._id,
     disabled: isEditing || isLoading,
-  })
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  }
+  };
 
   const verifyTaskState = async (taskId: string, expectedTitle: string) => {
     try {
-      const backendTask = await getTaskById(taskId)
-      if (!backendTask) return false
-      return backendTask.title === expectedTitle
+      const backendTask = await getTaskById(taskId);
+      if (!backendTask) return false;
+      return backendTask.title === expectedTitle;
     } catch (error) {
-      return false
+      return false;
     }
-  }
+  };
 
   const getStatusIcon = () => {
     if (task.completed) {
-      return <CheckSquare className="h-4 w-4 text-green-500" />
+      return <CheckSquare className="h-4 w-4 text-green-500" />;
     }
     if (task.status === "inprogress") {
-      return <Clock className="h-4 w-4 text-amber-500" />
+      return <Clock className="h-4 w-4 text-amber-500" />;
     }
-    return null
-  }
+    return null;
+  };
 
   const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (isLoading) return
-    setIsEditing(true)
-  }
+    e.stopPropagation();
+    if (isLoading) return;
+    setIsEditing(true);
+  };
 
   const handleSave = async (e: React.MouseEvent) => {
-    e.stopPropagation()
+    e.stopPropagation();
 
     if (editedTitle.trim() && editedTitle !== task.title) {
-      setIsEditing(false)
-      startLoading()
+      setIsEditing(false);
+      startLoading();
 
       try {
-        await updateTask(task._id, editedTitle)
-        const isVerified = await verifyTaskState(task._id, editedTitle)
-        if (!isVerified) router.refresh()
+        await updateTask(task._id, editedTitle);
+        const isVerified = await verifyTaskState(task._id, editedTitle);
+        if (!isVerified) router.refresh();
       } catch (error) {
-        router.refresh()
+        router.refresh();
       } finally {
-        stopLoading()
+        stopLoading();
       }
     } else if (editedTitle.trim() === "") {
-      setEditedTitle(task.title)
-      setIsEditing(false)
+      setEditedTitle(task.title);
+      setIsEditing(false);
     } else {
-      setIsEditing(false)
+      setIsEditing(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    setIsDeleteDialogOpen(false)
-    startLoading()
+    setIsDeleteDialogOpen(false);
+    startLoading();
 
     try {
-      await deleteTask(task._id)
+      await deleteTask(task._id);
     } catch (error) {
-      router.refresh()
+      router.refresh();
     } finally {
-      stopLoading()
+      stopLoading();
     }
-  }
+  };
 
   return (
     <div
@@ -112,12 +126,12 @@ export default function KanbanItem({ task }: KanbanItemProps) {
               className="min-w-0 flex-1 px-3 py-2 border border-r-0 border-input rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleSave(e as any)
+                if (e.key === "Enter") handleSave(e as any);
                 if (e.key === "Escape") {
-                  setEditedTitle(task.title)
-                  setIsEditing(false)
+                  setEditedTitle(task.title);
+                  setIsEditing(false);
                 }
-                e.stopPropagation()
+                e.stopPropagation();
               }}
               onClick={(e) => e.stopPropagation()}
             />
@@ -134,19 +148,27 @@ export default function KanbanItem({ task }: KanbanItemProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div
-              {...(isEditing || isLoading ? {} : { ...attributes, ...listeners })}
+              {...(isEditing || isLoading
+                ? {}
+                : { ...attributes, ...listeners })}
               className="text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing p-1 flex-shrink-0"
             >
               <GripVertical className="h-4 w-4" />
             </div>
             {getStatusIcon()}
-            <p className={`truncate ${task.completed ? "line-through text-muted-foreground" : ""}`}>{task.title}</p>
+            <p
+              className={`truncate ${
+                task.completed ? "line-through text-muted-foreground" : ""
+              }`}
+            >
+              {task.title}
+            </p>
           </div>
 
-          <div className="flex rounded-md overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
+          <div className="flex rounded-md overflow-hidden flex-shrink-0 ">
             <button
               onClick={handleEdit}
-              className="p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-blue-500 disabled:opacity-50 disabled:pointer-events-none"
+              className="bg-gray-700 border border-gray-700 hover:border-green-300 p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-green-500 disabled:opacity-50 disabled:pointer-events-none rounded-l-lg"
               aria-label="Edit task"
               disabled={isLoading}
             >
@@ -155,7 +177,7 @@ export default function KanbanItem({ task }: KanbanItemProps) {
             <div className="w-px bg-border dark:bg-gray-600"></div>
             <button
               onClick={() => setIsDeleteDialogOpen(true)}
-              className="p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-red-500 disabled:opacity-50 disabled:pointer-events-none"
+              className="bg-gray-700 border border-gray-700 hover:border-red-300 p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-red-500 disabled:opacity-50 disabled:pointer-events-none rounded-r-lg"
               aria-label="Delete task"
               disabled={isLoading}
             >
@@ -172,6 +194,5 @@ export default function KanbanItem({ task }: KanbanItemProps) {
         taskTitle={task.title}
       />
     </div>
-  )
+  );
 }
-

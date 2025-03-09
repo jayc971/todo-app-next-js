@@ -1,122 +1,147 @@
-"use client"
+"use client";
 
-import type { Task } from "@/lib/types"
-import { deleteTask, updateTask, toggleTaskCompletion, getTaskById } from "@/lib/actions"
-import { Trash, Edit, Check, Square, CheckSquare } from "lucide-react"
-import { useOptimistic, useState } from "react"
-import { useLoading } from "@/contexts/loading-context"
-import { useRouter } from "next/navigation"
-import { useSortable } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import DeleteTaskDialog from "./delete-task-dialog"
+import type { Task } from "@/lib/types";
+import {
+  deleteTask,
+  updateTask,
+  toggleTaskCompletion,
+  getTaskById,
+} from "@/lib/actions";
+import { Trash, Edit, Check, Square, CheckSquare } from "lucide-react";
+import { useOptimistic, useState } from "react";
+import { useLoading } from "@/contexts/loading-context";
+import { useRouter } from "next/navigation";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import DeleteTaskDialog from "./delete-task-dialog";
 
 interface TaskItemProps {
-  task: Task
-  index: number
+  task: Task;
+  index: number;
 }
 
 export default function TaskItem({ task, index }: TaskItemProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedTitle, setEditedTitle] = useState(task.title)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const { startLoading, stopLoading, isLoading } = useLoading()
-  const router = useRouter()
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(task.title);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { startLoading, stopLoading, isLoading } = useLoading();
+  const router = useRouter();
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: task._id,
     disabled: isEditing || isLoading,
-  })
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  }
+  };
 
-  const [optimisticTask, updateOptimisticTask] = useOptimistic(task, (state, { type, newTitle, completed }) => {
-    if (type === "delete") return { ...state, _id: "deleted" }
-    if (type === "update") return { ...state, title: newTitle }
-    if (type === "toggle") {
-      // When toggling completion, also update the status
-      const status = completed ? "done" : "todo"
-      return { ...state, completed, status }
+  const [optimisticTask, updateOptimisticTask] = useOptimistic(
+    task,
+    (state, { type, newTitle, completed }) => {
+      if (type === "delete") return { ...state, _id: "deleted" };
+      if (type === "update") return { ...state, title: newTitle };
+      if (type === "toggle") {
+        // When toggling completion, also update the status
+        const status = completed ? "done" : "todo";
+        return { ...state, completed, status };
+      }
+      return state;
     }
-    return state
-  })
+  );
 
-  const verifyTaskState = async (taskId: string, expectedTitle?: string, expectedCompleted?: boolean) => {
+  const verifyTaskState = async (
+    taskId: string,
+    expectedTitle?: string,
+    expectedCompleted?: boolean
+  ) => {
     try {
-      const backendTask = await getTaskById(taskId)
-      if (!backendTask) return false
+      const backendTask = await getTaskById(taskId);
+      if (!backendTask) return false;
 
-      let isMatch = true
-      if (expectedTitle !== undefined) isMatch = isMatch && backendTask.title === expectedTitle
-      if (expectedCompleted !== undefined) isMatch = isMatch && backendTask.completed === expectedCompleted
+      let isMatch = true;
+      if (expectedTitle !== undefined)
+        isMatch = isMatch && backendTask.title === expectedTitle;
+      if (expectedCompleted !== undefined)
+        isMatch = isMatch && backendTask.completed === expectedCompleted;
 
-      return isMatch
+      return isMatch;
     } catch (error) {
-      return false
+      return false;
     }
-  }
+  };
 
   const handleDelete = async () => {
-    setIsDeleteDialogOpen(false)
-    updateOptimisticTask({ type: "delete" })
-    startLoading()
+    setIsDeleteDialogOpen(false);
+    updateOptimisticTask({ type: "delete" });
+    startLoading();
 
     try {
-      await deleteTask(task._id)
+      await deleteTask(task._id);
     } catch (error) {
-      router.refresh()
+      router.refresh();
     } finally {
-      stopLoading()
+      stopLoading();
     }
-  }
+  };
 
   const handleEdit = () => {
-    if (isLoading) return
-    setIsEditing(true)
-  }
+    if (isLoading) return;
+    setIsEditing(true);
+  };
 
   const handleSave = async () => {
     if (editedTitle.trim() && editedTitle !== task.title) {
-      updateOptimisticTask({ type: "update", newTitle: editedTitle })
-      setIsEditing(false)
-      startLoading()
+      updateOptimisticTask({ type: "update", newTitle: editedTitle });
+      setIsEditing(false);
+      startLoading();
 
       try {
-        await updateTask(task._id, editedTitle)
-        const isVerified = await verifyTaskState(task._id, editedTitle)
-        if (!isVerified) router.refresh()
+        await updateTask(task._id, editedTitle);
+        const isVerified = await verifyTaskState(task._id, editedTitle);
+        if (!isVerified) router.refresh();
       } catch (error) {
-        router.refresh()
+        router.refresh();
       } finally {
-        stopLoading()
+        stopLoading();
       }
     } else if (editedTitle.trim() === "") {
-      setEditedTitle(task.title)
-      setIsEditing(false)
+      setEditedTitle(task.title);
+      setIsEditing(false);
     } else {
-      setIsEditing(false)
+      setIsEditing(false);
     }
-  }
+  };
 
   const handleToggleCompletion = async () => {
-    const newCompletedState = !optimisticTask.completed
-    updateOptimisticTask({ type: "toggle", completed: newCompletedState })
-    startLoading()
+    const newCompletedState = !optimisticTask.completed;
+    updateOptimisticTask({ type: "toggle", completed: newCompletedState });
+    startLoading();
 
     try {
-      await toggleTaskCompletion(task._id, newCompletedState)
-      const isVerified = await verifyTaskState(task._id, undefined, newCompletedState)
-      if (!isVerified) router.refresh()
+      await toggleTaskCompletion(task._id, newCompletedState);
+      const isVerified = await verifyTaskState(
+        task._id,
+        undefined,
+        newCompletedState
+      );
+      if (!isVerified) router.refresh();
     } catch (error) {
-      router.refresh()
+      router.refresh();
     } finally {
-      stopLoading()
+      stopLoading();
     }
-  }
+  };
 
-  if (optimisticTask._id === "deleted") return null
+  if (optimisticTask._id === "deleted") return null;
 
   return (
     <li
@@ -134,10 +159,16 @@ export default function TaskItem({ task, index }: TaskItemProps) {
               ? "text-muted-foreground border-white dark:border-gray-800 hover:text-green-500 hover:border-green-500"
               : "text-primary border-white dark:border-gray-800 hover:text-green-500 hover:border-green-500"
           } rounded-md p-1`}
-          aria-label={optimisticTask.completed ? "Mark as incomplete" : "Mark as complete"}
+          aria-label={
+            optimisticTask.completed ? "Mark as incomplete" : "Mark as complete"
+          }
           disabled={isLoading}
         >
-          {optimisticTask.completed ? <CheckSquare className="h-5 w-5" /> : <Square className="h-5 w-5" />}
+          {optimisticTask.completed ? (
+            <CheckSquare className="h-5 w-5" />
+          ) : (
+            <Square className="h-5 w-5" />
+          )}
         </button>
 
         {isEditing ? (
@@ -148,10 +179,10 @@ export default function TaskItem({ task, index }: TaskItemProps) {
               className="min-w-0 flex-1 p-2 border border-r-0 border-input rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleSave()
+                if (e.key === "Enter") handleSave();
                 if (e.key === "Escape") {
-                  setEditedTitle(task.title)
-                  setIsEditing(false)
+                  setEditedTitle(task.title);
+                  setIsEditing(false);
                 }
               }}
             />
@@ -164,7 +195,13 @@ export default function TaskItem({ task, index }: TaskItemProps) {
             </button>
           </div>
         ) : (
-          <span className={`truncate ${optimisticTask.completed ? "line-through text-muted-foreground" : ""}`}>
+          <span
+            className={`truncate ${
+              optimisticTask.completed
+                ? "line-through text-muted-foreground"
+                : ""
+            }`}
+          >
             {optimisticTask.title}
           </span>
         )}
@@ -173,7 +210,7 @@ export default function TaskItem({ task, index }: TaskItemProps) {
       {!isEditing && (
         <div className="flex rounded-md overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
           <button
-            className="p-2 text-gray-600 dark:text-gray-300 transition-colors hover:text-blue-500"
+            className="bg-gray-700 border border-gray-700 hover:border-green-300 p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-green-500 disabled:opacity-50 disabled:pointer-events-none rounded-l-lg"
             onClick={handleEdit}
             aria-label="Edit task"
             disabled={isLoading}
@@ -182,7 +219,7 @@ export default function TaskItem({ task, index }: TaskItemProps) {
           </button>
           <div className="w-px bg-border dark:bg-gray-600"></div>
           <button
-            className="p-2 text-gray-600 dark:text-gray-300 transition-colors hover:text-red-500"
+            className="bg-gray-700 border border-gray-700 hover:border-red-300 p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-red-500 disabled:opacity-50 disabled:pointer-events-none rounded-r-lg"
             onClick={() => setIsDeleteDialogOpen(true)}
             disabled={isEditing || isLoading}
             aria-label="Delete task"
@@ -199,6 +236,5 @@ export default function TaskItem({ task, index }: TaskItemProps) {
         taskTitle={task.title}
       />
     </li>
-  )
+  );
 }
-

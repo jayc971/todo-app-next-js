@@ -168,16 +168,15 @@ export default function KanbanItem({ task }: KanbanItemProps) {
           <div className="flex rounded-md overflow-hidden flex-shrink-0 ">
             <button
               onClick={handleEdit}
-              className="bg-gray-700 border border-gray-700 hover:border-green-300 p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-green-500 disabled:opacity-50 disabled:pointer-events-none rounded-l-lg"
+              className="bg-gray-100 hover:bg-green-100 dark:hover:bg-green-700 dark:bg-gray-700 border border-r-0 border-gray-400 hover:border-green-300 p-1 text-gray-400 dark:text-gray-300 transition-colors hover:text-green-500 disabled:opacity-50 disabled:pointer-events-none rounded-l-lg"
               aria-label="Edit task"
               disabled={isLoading}
             >
               <Edit className="h-3 w-3" />
             </button>
-            <div className="w-px bg-border dark:bg-gray-600"></div>
             <button
               onClick={() => setIsDeleteDialogOpen(true)}
-              className="bg-gray-700 border border-gray-700 hover:border-red-300 p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-red-500 disabled:opacity-50 disabled:pointer-events-none rounded-r-lg"
+              className="bg-gray-100 hover:bg-red-100 dark:hover:bg-red-500 dark:bg-gray-700 border border-l-0 border-gray-400 hover:border-red-300 p-1 text-gray-400 dark:text-gray-300 transition-colors hover:text-red-500 disabled:opacity-50 disabled:pointer-events-none rounded-r-lg"
               aria-label="Delete task"
               disabled={isLoading}
             >

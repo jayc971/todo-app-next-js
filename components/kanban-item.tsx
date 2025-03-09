@@ -123,7 +123,7 @@ export default function KanbanItem({ task }: KanbanItemProps) {
             />
             <button
               onClick={handleSave}
-              className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-l-0 border-input rounded-r-md transition-colors hover:bg-green-500 hover:border-green-500 hover:text-white"
+              className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 border-l-0 rounded-r-md transition-colors hover:border-green-500"
               aria-label="Save task"
             >
               <Check className="h-4 w-4" />
@@ -143,19 +143,19 @@ export default function KanbanItem({ task }: KanbanItemProps) {
             <p className={`truncate ${task.completed ? "line-through text-muted-foreground" : ""}`}>{task.title}</p>
           </div>
 
-          <div className="flex border border-border dark:border-gray-700 rounded-md overflow-hidden flex-shrink-0">
+          <div className="flex rounded-md overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
             <button
               onClick={handleEdit}
-              className="p-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-200 ease-in-out hover:bg-blue-500 hover:border-blue-500 hover:text-white disabled:opacity-50 disabled:pointer-events-none"
+              className="p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-blue-500 disabled:opacity-50 disabled:pointer-events-none"
               aria-label="Edit task"
               disabled={isLoading}
             >
               <Edit className="h-3 w-3" />
             </button>
-            <div className="w-px bg-border dark:bg-gray-700"></div>
+            <div className="w-px bg-border dark:bg-gray-600"></div>
             <button
               onClick={() => setIsDeleteDialogOpen(true)}
-              className="p-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-200 ease-in-out hover:bg-red-500 hover:border-red-500 hover:text-white disabled:opacity-50 disabled:pointer-events-none"
+              className="p-1 text-gray-600 dark:text-gray-300 transition-colors hover:text-red-500 disabled:opacity-50 disabled:pointer-events-none"
               aria-label="Delete task"
               disabled={isLoading}
             >

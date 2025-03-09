@@ -15,7 +15,7 @@ import {
 } from "@dnd-kit/core"
 import KanbanColumn from "./kanban-column"
 import KanbanItem from "./kanban-item"
-import { updateTaskStatus, toggleTaskCompletion, getTaskById, updateTaskOrder } from "@/lib/actions"
+import { updateTaskStatus, getTaskById, updateTaskOrder } from "@/lib/actions"
 import { useLoading } from "@/contexts/loading-context"
 import { useRouter } from "next/navigation"
 
@@ -55,10 +55,23 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
 
   useEffect(() => {
     if (!isLoading && !isCrossColumnLoading) {
+      // Distribute tasks to columns based on status
       setColumns([
-        { id: "todo", title: "To Do", tasks: tasks.filter((task) => !task.status || task.status === "todo") },
-        { id: "inprogress", title: "In Progress", tasks: tasks.filter((task) => task.status === "inprogress") },
-        { id: "done", title: "Done", tasks: tasks.filter((task) => task.status === "done") },
+        {
+          id: "todo",
+          title: "To Do",
+          tasks: tasks.filter((task) => task.status === "todo" || (!task.status && !task.completed)),
+        },
+        {
+          id: "inprogress",
+          title: "In Progress",
+          tasks: tasks.filter((task) => task.status === "inprogress"),
+        },
+        {
+          id: "done",
+          title: "Done",
+          tasks: tasks.filter((task) => task.status === "done" || (!task.status && task.completed)),
+        },
       ])
     }
   }, [tasks, isLoading, isCrossColumnLoading])
@@ -120,11 +133,9 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
 
       const [task] = newColumns[activeColumnIndex].tasks.splice(taskIndex, 1)
       task.status = overId
-      if (overId === "done") {
-        task.completed = true
-      } else if (task.completed) {
-        task.completed = false
-      }
+
+      // Only mark as completed if moving to "done" column
+      task.completed = overId === "done"
 
       newColumns[overColumnIndex].tasks.push(task)
       setColumns(newColumns)
@@ -143,11 +154,9 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
       const newColumns = [...columns]
       const [task] = newColumns[activeColumnIndex].tasks.splice(activeTaskIndex, 1)
       task.status = overColumn.id
-      if (overColumn.id === "done") {
-        task.completed = true
-      } else if (task.completed) {
-        task.completed = false
-      }
+
+      // Only mark as completed if moving to "done" column
+      task.completed = overColumn.id === "done"
 
       newColumns[overColumnIndex].tasks.splice(overTaskIndex, 0, task)
       setColumns(newColumns)
@@ -171,22 +180,21 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
     if (!taskId || !targetColumn) return false
 
     try {
-      const completed = targetColumn === "done"
+      // Update task status, which will also update the completed state
       const result = await updateTaskStatus(taskId, targetColumn)
       if (!result.success) throw new Error("Failed to update task status")
-
-      if (completed) {
-        await toggleTaskCompletion(taskId, true)
-      } else if (result.task?.completed) {
-        await toggleTaskCompletion(taskId, false)
-      }
 
       if (overTaskId) {
         await updateTaskOrder(taskId, overTaskId)
       }
 
-      const isVerified = await verifyTaskState(taskId, targetColumn, completed)
-      if (!isVerified) router.refresh()
+      // Verify that both status and completed state were updated correctly
+      const expectedCompleted = targetColumn === "done"
+      const isVerified = await verifyTaskState(taskId, targetColumn, expectedCompleted)
+
+      if (!isVerified) {
+        router.refresh()
+      }
 
       return true
     } catch (error) {
@@ -196,11 +204,10 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
     const { taskId, sourceColumn, targetColumn, overTaskId } = dragInfoRef.current
     setActiveTask(null)
 
-    if (!over || !targetColumn) {
+    if (!targetColumn) {
       dragInfoRef.current = { taskId: null, sourceColumn: null, targetColumn: null, overTaskId: null }
       return
     }

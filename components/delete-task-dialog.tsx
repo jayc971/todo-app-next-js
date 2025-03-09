@@ -40,13 +40,13 @@ export default function DeleteTaskDialog({ isOpen, onClose, onConfirm, taskTitle
         <p className="mb-6">Are you sure you want to delete the task "{taskTitle}"? This action cannot be undone.</p>
         <div className="flex justify-end gap-2">
           <button
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md transition-colors border border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500"
             onClick={onClose}
           >
             Cancel
           </button>
           <button
-            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+            className="px-4 py-2 bg-red-500 text-white rounded-md transition-colors border border-red-500 hover:border-red-700"
             onClick={onConfirm}
           >
             Delete

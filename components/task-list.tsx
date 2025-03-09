@@ -28,11 +28,20 @@ export default function TaskList({ initialTasks }: TaskListProps) {
 
   useEffect(() => {
     if (!isLoading) {
+      // Sort tasks by completion status and then by status
       const sortedTasks = [...initialTasks].sort((a, b) => {
+        // First sort by completion status
         if (a.completed && !b.completed) return 1
         if (!a.completed && b.completed) return -1
-        return 0
+
+        // Then sort by status
+        const statusOrder = { todo: 0, inprogress: 1, done: 2 }
+        const aStatus = a.status || (a.completed ? "done" : "todo")
+        const bStatus = b.status || (b.completed ? "done" : "todo")
+
+        return statusOrder[aStatus] - statusOrder[bStatus]
       })
+
       setTasks(sortedTasks)
     }
   }, [initialTasks, isLoading])

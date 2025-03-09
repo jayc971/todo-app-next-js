@@ -35,7 +35,11 @@ export default function TaskItem({ task, index }: TaskItemProps) {
   const [optimisticTask, updateOptimisticTask] = useOptimistic(task, (state, { type, newTitle, completed }) => {
     if (type === "delete") return { ...state, _id: "deleted" }
     if (type === "update") return { ...state, title: newTitle }
-    if (type === "toggle") return { ...state, completed }
+    if (type === "toggle") {
+      // When toggling completion, also update the status
+      const status = completed ? "done" : "todo"
+      return { ...state, completed, status }
+    }
     return state
   })
 
@@ -125,11 +129,11 @@ export default function TaskItem({ task, index }: TaskItemProps) {
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <button
           onClick={handleToggleCompletion}
-          className={`flex-shrink-0 transition-colors ${
+          className={`flex-shrink-0 transition-colors border ${
             optimisticTask.completed
-              ? "text-muted-foreground hover:text-green-500"
-              : "text-primary hover:text-green-500"
-          }`}
+              ? "text-muted-foreground border-white dark:border-gray-800 hover:text-green-500 hover:border-green-500"
+              : "text-primary border-white dark:border-gray-800 hover:text-green-500 hover:border-green-500"
+          } rounded-md p-1`}
           aria-label={optimisticTask.completed ? "Mark as incomplete" : "Mark as complete"}
           disabled={isLoading}
         >
@@ -154,7 +158,7 @@ export default function TaskItem({ task, index }: TaskItemProps) {
             <button
               onClick={handleSave}
               aria-label="Save task"
-              className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-l-0 border-input rounded-r-md transition-colors hover:bg-green-500 hover:border-green-500 hover:text-white"
+              className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 border-l-0 rounded-r-md transition-colors hover:border-green-500"
             >
               <Check className="h-4 w-4" />
             </button>
@@ -167,17 +171,18 @@ export default function TaskItem({ task, index }: TaskItemProps) {
       </div>
 
       {!isEditing && (
-        <div className="flex border border-border dark:border-gray-700 rounded-md overflow-hidden flex-shrink-0">
+        <div className="flex rounded-md overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
           <button
-            className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors hover:bg-blue-500 hover:border-blue-500 hover:text-white"
+            className="p-2 text-gray-600 dark:text-gray-300 transition-colors hover:text-blue-500"
             onClick={handleEdit}
             aria-label="Edit task"
             disabled={isLoading}
           >
             <Edit className="h-4 w-4" />
           </button>
+          <div className="w-px bg-border dark:bg-gray-600"></div>
           <button
-            className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors hover:bg-red-500 hover:border-red-500 hover:text-white"
+            className="p-2 text-gray-600 dark:text-gray-300 transition-colors hover:text-red-500"
             onClick={() => setIsDeleteDialogOpen(true)}
             disabled={isEditing || isLoading}
             aria-label="Delete task"

@@ -60,7 +60,7 @@ export default function AddTaskForm({ tasks, kanbanView = false }: AddTaskFormPr
       <button
         type="submit"
         disabled={!title.trim()}
-        className="p-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-green-500 hover:text-white transition-colors rounded-r-md border border-input border-l-0 disabled:opacity-50 disabled:pointer-events-none"
+        className="p-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 border-l-0 transition-colors hover:border-green-500 rounded-r-md disabled:opacity-50 disabled:pointer-events-none"
       >
         <PlusCircle className="h-4 w-4" />
       </button>

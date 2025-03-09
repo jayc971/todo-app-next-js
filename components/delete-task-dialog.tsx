@@ -1,14 +1,6 @@
 "use client"
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
 
 interface DeleteTaskDialogProps {
   isOpen: boolean
@@ -18,25 +10,50 @@ interface DeleteTaskDialogProps {
 }
 
 export default function DeleteTaskDialog({ isOpen, onClose, onConfirm, taskTitle }: DeleteTaskDialogProps) {
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true)
+    } else {
+      const timer = setTimeout(() => {
+        setIsVisible(false)
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen])
+
+  if (!isVisible && !isOpen) return null
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Delete Task</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete the task "{taskTitle}"? This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="flex flex-row justify-end gap-2 sm:gap-0">
-          <Button variant="outline" onClick={onClose}>
+    <div
+      className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center transition-opacity duration-300 ${
+        isOpen ? "opacity-100" : "opacity-0"
+      }`}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-800 max-w-md p-6 m-4 rounded-lg shadow-lg border border-border dark:border-gray-700"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-xl font-bold mb-2">Delete Task</h2>
+        <p className="mb-6">Are you sure you want to delete the task "{taskTitle}"? This action cannot be undone.</p>
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            onClick={onClose}
+          >
             Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          </button>
+          <button
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+            onClick={onConfirm}
+          >
             Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 

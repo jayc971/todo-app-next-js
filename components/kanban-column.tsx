@@ -9,13 +9,12 @@ interface KanbanColumnProps {
 }
 
 export default function KanbanColumn({ column }: KanbanColumnProps) {
-  const { isLoading } = useLoading()
+  const { isLoading, isCrossColumnLoading } = useLoading()
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
-    disabled: isLoading,
+    disabled: isLoading || isCrossColumnLoading,
   })
 
-  // Define column header colors
   const getHeaderColor = () => {
     switch (column.id) {
       case "todo":
@@ -29,18 +28,15 @@ export default function KanbanColumn({ column }: KanbanColumnProps) {
     }
   }
 
-  // Add highlight when column is being dragged over
   const getHighlightClass = () => {
-    if (isOver) {
-      return "ring-2 ring-primary ring-opacity-70"
-    }
+    if (isOver) return "ring-2 ring-primary ring-opacity-70"
     return ""
   }
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 min-w-[250px] max-w-full md:max-w-[350px] rounded-md p-3 border border-border transition-colors ${getHighlightClass()}`}
+      className={`bg-background dark:bg-gray-800 rounded-md p-3 border border-border dark:border-gray-700 transition-colors ${getHighlightClass()}`}
     >
       <h3 className={`font-semibold mb-3 px-2 ${getHeaderColor()}`}>
         {column.title} <span className="text-sm ml-1 opacity-70">({column.tasks.length})</span>

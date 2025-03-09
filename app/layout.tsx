@@ -21,11 +21,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground min-h-screen flex flex-col`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <body className={`${inter.className} min-h-screen flex flex-col`}>
+        <ThemeProvider>
           <LoadingProvider>
             <Header />
-            <div className="flex-1">{children}</div>
+            <div className="flex-1 flex justify-center">
+              <div className="w-full">{children}</div>
+            </div>
           </LoadingProvider>
         </ThemeProvider>
       </body>

@@ -66,7 +66,7 @@ export default function AddTaskForm({
       <button
         type="submit"
         disabled={!title.trim()}
-        className="p-4 bg-gray-100 hover:bg-green-100 dark:hover:bg-green-500 dark:bg-gray-700 border border-l-0 border-gray-400 hover:border-green-300 p-1 text-gray-400 dark:text-gray-300 transition-colors hover:text-green-500 disabled:opacity-50 disabled:pointer-events-none rounded-r-lg"
+        className="p-4 bg-gray-100 hover:bg-green-100 dark:hover:bg-green-700 dark:bg-gray-700 border border-l-0 border-gray-400 hover:border-green-300 p-1 text-gray-400 dark:text-gray-300 transition-colors hover:text-green-500 disabled:opacity-50 disabled:pointer-events-none rounded-r-lg"
       >
         <PlusCircle className="h-4 w-4" />
       </button>
